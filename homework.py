@@ -45,18 +45,22 @@ def send_message(bot: TeleBot, message: str) -> NoReturn:
 def get_api_answer(timestamp: int) -> Dict[str, Any]:
     """Функция делает запрос API сервис."""
     payload = {'from_date': timestamp}
-    logging.debug(f'{ENDPOINT}, headers {HEADERS}, params {payload}, timeout=5')
+    logging.debug(f'{ENDPOINT}, headers {HEADERS}, '
+                  f'params {payload}, timeout=5')
     try:
-        response = requests.get(ENDPOINT, headers=HEADERS, params=payload, timeout=5)
+        response = requests.get(ENDPOINT,
+                                headers=HEADERS,
+                                params=payload,
+                                timeout=5)
         response.raise_for_status()
     except requests.RequestException as error:
         raise ConnectionError(f'Ошибка запрос API: {error}') from error
 
     if response.status_code != 200:
-        raise AssertionError(f'Неправильный статус код: {response.status_code}')
+        raise AssertionError('Неправильный статус код: '
+                             f'{response.status_code}')
 
     return response.json()
-
 
 
 def check_response(response: Dict[str, Any]) -> List[Any]:
