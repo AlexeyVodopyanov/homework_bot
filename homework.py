@@ -1,13 +1,12 @@
 import logging
 import os
 import time
+from http import HTTPStatus
 from typing import Any, Dict, List, NoReturn
 
 import requests
 from dotenv import load_dotenv
 from telebot import TeleBot
-
-from http import HTTPStatus
 
 load_dotenv()
 
