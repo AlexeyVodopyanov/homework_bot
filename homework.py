@@ -26,6 +26,7 @@ HOMEWORK_VERDICTS = {
 
 logger = logging.getLogger(__name__)
 
+
 def check_tokens() -> bool:
     """Функция доступ проверка переменнее окружение."""
     return all((PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID))
@@ -48,7 +49,7 @@ def get_api_answer(timestamp: int) -> Dict[str, Any]:
     """Функция делает запрос API сервис."""
     payload = {'from_date': timestamp}
     logger.debug(f'{ENDPOINT}, headers {HEADERS}, '
-                  f'params {payload}, timeout=5')
+                 f'params {payload}, timeout=5')
     try:
         response = requests.get(ENDPOINT,
                                 headers=HEADERS,
