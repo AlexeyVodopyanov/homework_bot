@@ -42,9 +42,9 @@ Homework Bot предназначен для студентов Яндекс.П�
 
 Создайте файл `.env` в корне проекта и добавьте следующие переменные:
 
-PRACTICUM_TOKEN=<Ваш токен API Яндекс.Практикум>
-TELEGRAM_TOKEN=<Ваш токен API Telegram Bot>
-TELEGRAM_CHAT_ID=<Ваш Chat ID в Telegram>
+- PRACTICUM_TOKEN=<Ваш токен API Яндекс.Практикум>
+- TELEGRAM_TOKEN=<Ваш токен API Telegram Bot>
+- TELEGRAM_CHAT_ID=<Ваш Chat ID в Telegram>
 
 
 ![image](https://github.com/AlexeyVodopyanov/homework_bot/assets/106692645/a39d66db-97cd-4323-b7bf-914d2e8ae74b)
