@@ -7,6 +7,8 @@ import requests
 from dotenv import load_dotenv
 from telebot import TeleBot
 
+from http import HTTPStatus
+
 load_dotenv()
 
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
@@ -23,6 +25,7 @@ HOMEWORK_VERDICTS = {
     "rejected": 'Работа проверена: у ревьюера есть замечания.',
 }
 
+logger = logging.getLogger(__name__)
 
 def check_tokens() -> bool:
     """Функция доступ проверка переменнее окружение."""
@@ -31,21 +34,21 @@ def check_tokens() -> bool:
 
 def send_message(bot: TeleBot, message: str) -> NoReturn:
     """Функция отправил сообщения чат."""
-    logging.debug(f'Отправил бот: {bot} сообщения: {message}')
+    logger.debug(f'Отправил бот: {bot} сообщения: {message}')
     try:
         bot.send_message(
             TELEGRAM_CHAT_ID,
             message,
         )
-        logging.debug('Прошла успешная отправил сообщения в чат')
+        logger.debug('Прошла успешная отправил сообщения в чат')
     except Exception as error:
-        logging.error(f'Ошибка отправил сообщения: {error}')
+        logger.error(f'Ошибка отправил сообщения: {error}')
 
 
 def get_api_answer(timestamp: int) -> Dict[str, Any]:
     """Функция делает запрос API сервис."""
     payload = {'from_date': timestamp}
-    logging.debug(f'{ENDPOINT}, headers {HEADERS}, '
+    logger.debug(f'{ENDPOINT}, headers {HEADERS}, '
                   f'params {payload}, timeout=5')
     try:
         response = requests.get(ENDPOINT,
@@ -56,16 +59,19 @@ def get_api_answer(timestamp: int) -> Dict[str, Any]:
     except requests.RequestException as error:
         raise ConnectionError(f'Ошибка запрос API: {error}') from error
 
-    if response.status_code != 200:
+    if response.status_code != HTTPStatus.OK:
         raise AssertionError('Неправильный статус код: '
                              f'{response.status_code}')
 
-    return response.json()
+    try:
+        return response.json()
+    except ValueError as error:
+        raise ValueError(f'Ответ не преобразуется в JSON: {error}') from error
 
 
 def check_response(response: Dict[str, Any]) -> List[Any]:
     """Функция проверял ответ API."""
-    logging.debug(f'Начало проверял ответ API: {response}')
+    logger.debug(f'Начало проверял ответ API: {response}')
     if not isinstance(response, dict):
         raise TypeError('Данных пришел не в вид словарь')
     if 'homeworks' not in response:
@@ -80,7 +86,7 @@ def check_response(response: Dict[str, Any]) -> List[Any]:
 
 def parse_status(homework: Dict[str, Any]) -> str:
     """Функция извлечь статус о конкретной домашняя работа."""
-    logging.debug('Начали парсинг статуса')
+    logger.debug('Начали парсинг статуса')
     homework_name = homework.get('homework_name')
     if not homework_name:
         raise KeyError('Нет ключ "homework_name"')
@@ -100,20 +106,20 @@ def check_message(bot: TeleBot, message: str, prev_message: str) -> str:
     if message != prev_message:
         send_message(bot, message)
     else:
-        logging.debug('Повтор сообщения, не отправляется боту')
+        logger.debug('Повтор сообщения, не отправляется боту')
     return message
 
 
 def main() -> NoReturn:
     """Основная логика работы бота."""
     if not check_tokens():
-        logging.critical('Нету токен')
+        logger.critical('Нету токен')
         raise SystemExit('Нету токен')
 
     try:
         bot = TeleBot(TELEGRAM_TOKEN)
     except Exception as error:
-        logging.critical(f'Ошибка создал экземпляр Bot(): {error}')
+        logger.critical(f'Ошибка создал экземпляр Bot(): {error}')
         raise SystemExit(f'Ошибка создал экземпляр Bot(): {error}')
 
     timestamp = int(time.time())
@@ -128,19 +134,19 @@ def main() -> NoReturn:
                 message = parse_status(homeworks[0])
                 prev_message = check_message(bot, message, prev_message)
             else:
-                logging.debug('Нету данных')
+                logger.debug('Нету данных')
 
         except ConnectionError as error:
             message = f'Ошибка нет связи соединения: {error}'
-            logging.exception(message)
+            logger.exception(message)
             prev_message = check_message(bot, message, prev_message)
         except TypeError as error:
             message = f'Объект не совпадает тип: {error}'
-            logging.exception(message)
+            logger.exception(message)
             prev_message = check_message(bot, message, prev_message)
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            logging.exception(message)
+            logger.exception(message)
             prev_message = check_message(bot, message, prev_message)
 
         finally:
